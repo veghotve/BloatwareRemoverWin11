@@ -19,7 +19,6 @@ $bloatware = @(
     "Microsoft.People"
     "Microsoft.Windows.Photos"
     "Microsoft.WindowsAlarms"
-    "Microsoft.WindowsCalculator"
     "Microsoft.WindowsCamera"
     "Microsoft.WindowsMaps"
     "Microsoft.WindowsSoundRecorder"
