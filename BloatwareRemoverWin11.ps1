@@ -39,7 +39,6 @@ $bloatware = @(
     "Microsoft.Getstarted"
     "Microsoft.MicrosoftOfficeHub"
     "Microsoft.BioEnrollment"
-    "Microsoft.WindowsStore"
     "Microsoft.WindowsPhone"
 )
 
