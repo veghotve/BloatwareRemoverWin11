@@ -3,7 +3,7 @@
 # Define the path to the log file
 $logPath = "$env:USERPROFILE\Desktop\bloatware-removal.log"
 
-# Define the list of bloatware to remove
+# Define the list of bloatware to remove with corrected names
 $bloatware = @(
     "Microsoft.Office.OneNote"
     "Microsoft.SkypeApp"
@@ -14,11 +14,12 @@ $bloatware = @(
     "Microsoft.Office.Desktop"
     "Microsoft.MicrosoftStickyNotes"
     "Microsoft.ScreenSketch"
-    "Microsoft.MicrosoftSolitaireCollection"
+    "Microsoft.MicrosoftSolitaireCollection" # Microsoft Solitaire Collection
     "Microsoft.MixedReality.Portal"
     "Microsoft.People"
     "Microsoft.Windows.Photos"
     "Microsoft.WindowsAlarms"
+    "Microsoft.WindowsCalculator"
     "Microsoft.WindowsCamera"
     "Microsoft.WindowsMaps"
     "Microsoft.WindowsSoundRecorder"
@@ -26,7 +27,8 @@ $bloatware = @(
     "Microsoft.Xbox.TCUI"
     "Microsoft.ZuneMusic"
     "Microsoft.Music.Preview"
-    "Microsoft.XboxGameCallableUI"
+    "Microsoft.XboxGameCallableUI_1000.22000.1.0_neutral_neutral_cw5n1h2txyewy" # Correct Xbox Game Callable UI
+    "Microsoft.XboxSpeechToTextOverlay_1.21.13002.0_x64__8wekyb3d8bbwe" # Xbox Speech to Text Overlay
     "Microsoft.XboxIdentityProvider"
     "Microsoft.BingTravel"
     "Microsoft.BingHealthAndFitness"
@@ -34,12 +36,21 @@ $bloatware = @(
     "Microsoft.BingFinance"
     "Microsoft.3DBuilder"
     "Microsoft.BingNews"
-    "Microsoft.XboxApp"
+    "Microsoft.XboxApp" # Xbox App
     "Microsoft.BingSports"
-    "Microsoft.Getstarted"
+    "Microsoft.Getstarted" # Get Started
     "Microsoft.MicrosoftOfficeHub"
     "Microsoft.BioEnrollment"
+    "Microsoft.WindowsStore"
     "Microsoft.WindowsPhone"
+    "Microsoft.Todos_0.55.42812.0_x64__8wekyb3d8bbwe" # Correct Microsoft To Do
+    "Microsoft.Clipchamp" # Clipchamp
+    "Microsoft.LinkedIn" # LinkedIn
+    "Microsoft.549981C3F5F10" # Cortana
+    "Microsoft.GetHelp" # Get Help
+    "Microsoft.windowscommunicationsapps" # Mail and Calendar
+    "Microsoft.Teams" # Microsoft Teams
+    "Microsoft.YourPhone" # Phone Link
 )
 
 # Initialize an array to store the names of the removed apps
