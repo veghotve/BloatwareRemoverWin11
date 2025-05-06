@@ -1,53 +1,57 @@
-# PostReinstall Toolkit for Windows 11
+# WindowsCleanupAndSetup
 
-This PowerShell script automates post-install cleanup and setup tasks for freshly installed Windows 11 systems. It removes unnecessary bloatware, installs essential applications, configures the system UI, and performs GPU-based customization for gaming PCs.
+**WindowsCleanupAndSetup** is a PowerShell script for automating post-installation cleanup and configuration of Windows 11. It removes unwanted software, applies recommended system settings, and installs essential tools. It also adapts its behavior based on whether the system is a Lenovo device or a gaming PC with an NVIDIA or AMD GPU.
 
 ## Features
 
-* Removes preinstalled Microsoft and OEM (Lenovo) applications
-* Detects Lenovo systems and installs Lenovo System Update
-* Detects NVIDIA or AMD GPUs and:
+* Removes Microsoft/UWP bloatware
+* Cleans up Lenovo-specific OEM software (if detected)
+* Installs Lenovo System Update silently
+* Detects NVIDIA/AMD GPUs and installs:
 
-  * Preserves Xbox services
-  * Installs Xbox App, Gaming Services, Epic Games Launcher, Ubisoft Connect, and EA App (non-Lenovo PCs only)
-* Installs commonly used applications (e.g., Chrome, Firefox, Discord, VLC, Steam)
-* Sets system language to English and input/locale to Norwegian
-* Applies Windows dark theme and taskbar customization
+  * Xbox app and Gaming Services
+  * Epic Games Launcher, Ubisoft Connect, EA App (only on non-OEM PCs)
+* Installs common applications using Winget:
+
+  * Chrome, Firefox, Steam, VLC, Discord, 7-Zip, Notepad++, KeePassXC, Visual Studio Code, PuTTY, PowerToys, Spotify, PowerShell
+* Sets Windows display language to English, with Norwegian keyboard layout and time/date format
+* Applies dark Windows theme
+* Customizes taskbar:
+
+  * Removes Search Box, Task View, Widgets
 * Sets Google as default search engine in Edge and Chrome
 * Disables hardware acceleration in Edge and Chrome
-* Generates a full execution log on the desktop
-
-## Requirements
-
-* Windows 11
-* Administrator privileges
-* PowerShell 5.1 or newer
+* Outputs a detailed log to the desktop
 
 ## Usage
 
-1. Open PowerShell as Administrator.
+1. **Open PowerShell as Administrator**
 
-2. Optionally bypass execution policy temporarily (if needed):
-
-   ```powershell
-   Set-ExecutionPolicy RemoteSigned -Scope Process -Force
-   ```
-
-3. Run the script:
+2. **If script execution is blocked**, run this command first:
 
    ```powershell
-   .\PostReinstall.ps1
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
    ```
 
-4. Follow the prompts and wait for the operations to complete. A log file will be saved to your desktop.
+3. **Run the script**:
+
+   ```powershell
+   .\WindowsCleanupAndSetup.ps1
+   ```
+
+4. **Log File**:
+   The script generates a log at:
+
+   ```
+   C:\Users\<YourUsername>\Desktop\PostInstall-Cleanup.log
+   ```
 
 ## Notes
 
-* The script uses Winget to install software. Ensure Winget is available and up-to-date.
-* The script detects GPU manufacturer and adjusts behavior accordingly.
-* Some changes (like language or theme) may require a sign-out or reboot to take full effect.
-* Spotify may fail to install due to elevation context. This is known behavior and safe to ignore.
+* Xbox/Game Services and other gaming-related apps are only installed if a compatible GPU is detected and the device is not OEM (e.g., not Lenovo).
+* Winget must be available on the system.
+* Make sure to review and adjust the script for your needs before running it in production.
 
 ## Disclaimer
 
-Use at your own risk. Always back up your data and review the script contents before execution. This script makes changes to system settings and removes applications which may affect your workflow.
+This script makes system-level changes. Use it at your own risk. Always test in a controlled environment first.
