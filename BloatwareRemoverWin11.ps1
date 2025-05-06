@@ -1,4 +1,4 @@
-# === POST-INSTALL CLEANUP SCRIPT v2.0 ===
+# === POST-INSTALL CLEANUP SCRIPT v2.1 ===
 
 $loggFil = "$env:USERPROFILE\Desktop\PostInstall-Cleanup.log"
 Start-Transcript -Path $loggFil -Append
@@ -127,7 +127,12 @@ foreach ($app in $standardApps) {
 
 # --- Systeminnstillinger: språk, tastatur, tema, søkemotor, akselerasjon ---
 Write-Host "`nOppdaterer språk, tastatur og datoformat..." -ForegroundColor Cyan
-$LangList = Get-WinUserLanguageList | Where-Object { $_.LanguageTag -ne "en-US" }
+$LangList = @()
+$LangList += New-WinUserLanguageList -Language "en-US"
+$norwegian = New-WinUserLanguageList -Language "nb-NO"
+$norwegian[0].InputMethodTips.Clear()
+$norwegian[0].InputMethodTips.Add("0414:00000414")
+$LangList += $norwegian
 Set-WinUserLanguageList $LangList -Force
 Set-WinSystemLocale nb-NO
 Set-WinUILanguageOverride -Language en-US
