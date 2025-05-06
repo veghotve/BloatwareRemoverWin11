@@ -29,19 +29,18 @@ $bloatwareApps = @(
     "Microsoft.GetHelp",
     "Microsoft.ZuneMusic",
     "Microsoft.WindowsAlarms",
-    "Microsoft.WindowsFeedbackHub",
     "Microsoft.OutlookForWindows",
     "Microsoft.Copilot"
 )
 
-# Xbox-relaterte apper kun fjernes hvis verken Nvidia eller AMD GPU
 if (-not $erNvidia -and -not $erAmd) {
     $bloatwareApps += @(
         "Microsoft.GamingApp",
         "Microsoft.XboxGamingOverlay",
         "Microsoft.Xbox.TCUI",
         "Microsoft.XboxSpeechToTextOverlay",
-        "Microsoft.XboxIdentityProvider"
+        "Microsoft.XboxIdentityProvider",
+        "Microsoft.WindowsFeedbackHub"
     )
 }
 
@@ -83,19 +82,16 @@ if ($erLenovo) {
     winget install --id Lenovo.SystemUpdate -e --silent --accept-package-agreements --accept-source-agreements
 }
 
-# --- Installer Xbox- og spillklienter ved Nvidia eller AMD GPU og ikke Lenovo ---
+# --- Installer Xbox- og spillklienter ---
 if (($erNvidia -or $erAmd) -and -not $erLenovo) {
     Write-Host "`nSpill-PC oppdaget – installerer Xbox og ekstra spillklienter..." -ForegroundColor Cyan
 
-    # Xbox app
     winget install --id Microsoft.XboxApp -e --silent --accept-package-agreements --accept-source-agreements
-
-    # Gaming Services (manuell installasjon via AppX)
     Get-AppxPackage -allusers Microsoft.GamingServices | ForEach-Object {
         Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml"
     }
+    winget install --id Microsoft.WindowsFeedbackHub -e --silent --accept-package-agreements --accept-source-agreements
 
-    # Epic, Ubisoft, EA App
     $gameClients = @(
         "EpicGames.EpicGamesLauncher",
         "Ubisoft.Connect",
@@ -105,3 +101,64 @@ if (($erNvidia -or $erAmd) -and -not $erLenovo) {
         winget install --id $client -e --silent --accept-package-agreements --accept-source-agreements
     }
 }
+
+# --- Installer programmer ---
+Write-Host "`nInstallerer standardprogrammer..." -ForegroundColor Cyan
+$standardApps = @(
+    "Google.Chrome",
+    "Mozilla.Firefox",
+    "Valve.Steam",
+    "KeePassXCTeam.KeePassXC",
+    "7zip.7zip",
+    "Discord.Discord",
+    "VideoLAN.VLC",
+    "Spotify.Spotify",
+    "TeamViewer.TeamViewer",
+    "Notepad++.Notepad++",
+    "Microsoft.VisualStudioCode",
+    "PuTTY.PuTTY",
+    "Microsoft.PowerToys",
+    "Microsoft.PowerShell"
+)
+foreach ($app in $standardApps) {
+    Write-Host "Installerer: $app" -ForegroundColor Gray
+    winget install --id $app -e --silent --accept-package-agreements --accept-source-agreements
+}
+
+# --- Systeminnstillinger: språk, tastatur, tema, søkemotor, akselerasjon ---
+Write-Host "`nOppdaterer språk, tastatur og datoformat..." -ForegroundColor Cyan
+Set-WinUILanguageOverride -Language en-US
+Set-WinUserLanguageList -LanguageList nb-NO,en-US -Force
+Set-WinSystemLocale nb-NO
+Set-Culture nb-NO
+Set-WinHomeLocation -GeoId 177
+Set-TimeZone "W. Europe Standard Time"
+
+Write-Host "Setter mørkt tema og fjerner unødvendige elementer fra taskbar..." -ForegroundColor Cyan
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 0 -Force
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Value 0 -Force
+New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -PropertyType DWord -Force
+New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn" -Value 0 -PropertyType DWord -Force
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Value 0 -Force
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -Value 0 -Force
+
+Write-Host "Setter Google som standardsøkemotor i Edge og Chrome..." -ForegroundColor Cyan
+New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Force | Out-Null
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "DefaultSearchProviderEnabled" -Value 1 -PropertyType DWord -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "DefaultSearchProviderSearchURL" -Value "https://www.google.com/search?q={searchTerms}" -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "DefaultSearchProviderName" -Value "Google" -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "DefaultSearchProviderKeyword" -Value "google.com" -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "PromotionalTabsEnabled" -Value 0 -PropertyType DWord -Force
+
+New-Item -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Force | Out-Null
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "DefaultSearchProviderEnabled" -Value 1 -PropertyType DWord -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "DefaultSearchProviderSearchURL" -Value "https://www.google.com/search?q={searchTerms}" -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "DefaultSearchProviderName" -Value "Google" -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "DefaultSearchProviderKeyword" -Value "google.com" -Force
+
+Write-Host "Deaktiverer hardware-akselerasjon i Edge og Chrome..." -ForegroundColor Cyan
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "HardwareAccelerationModeEnabled" -Value 0 -PropertyType DWord -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "HardwareAccelerationModeEnabled" -Value 0 -PropertyType DWord -Force
+
+Write-Host "`nOpprydding fullført. Logg lagret til: $loggFil" -ForegroundColor Green
+Stop-Transcript
