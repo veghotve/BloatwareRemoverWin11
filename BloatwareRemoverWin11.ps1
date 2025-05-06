@@ -1,93 +1,107 @@
-# This script removes bloatware from Windows 11 and logs the removed apps to a file
+# === POST-INSTALL CLEANUP SCRIPT v2.0 ===
 
-# Define the path to the log file
-$logPath = "$env:USERPROFILE\Desktop\bloatware-removal.log"
+$loggFil = "$env:USERPROFILE\Desktop\PostInstall-Cleanup.log"
+Start-Transcript -Path $loggFil -Append
+Write-Host "`nStarter post-reinstall opprydding..." -ForegroundColor Cyan
+Write-Host "--------------------------------------------------"
 
-# Define the list of bloatware to remove with corrected names
-$bloatware = @(
-    "Microsoft.Office.OneNote"
-    "Microsoft.SkypeApp"
-    "Microsoft.ZuneMusic"
-    "Microsoft.ZuneVideo"
-    "Microsoft.BingWeather"
-    "Microsoft.Office.Sway"
-    "Microsoft.Office.Desktop"
-    "Microsoft.MicrosoftStickyNotes"
-    "Microsoft.ScreenSketch"
-    "Microsoft.MicrosoftSolitaireCollection" # Microsoft Solitaire Collection
-    "Microsoft.MixedReality.Portal"
-    "Microsoft.People"
-    "Microsoft.Windows.Photos"
-    "Microsoft.WindowsAlarms"
-    "Microsoft.WindowsCalculator"
-    "Microsoft.WindowsCamera"
-    "Microsoft.WindowsMaps"
-    "Microsoft.WindowsSoundRecorder"
-    "Microsoft.WindowsFeedbackHub"
-    "Microsoft.Xbox.TCUI"
-    "Microsoft.ZuneMusic"
-    "Microsoft.Music.Preview"
-    "Microsoft.XboxGameCallableUI_1000.22000.1.0_neutral_neutral_cw5n1h2txyewy" # Correct Xbox Game Callable UI
-    "Microsoft.XboxSpeechToTextOverlay_1.21.13002.0_x64__8wekyb3d8bbwe" # Xbox Speech to Text Overlay
-    "Microsoft.XboxIdentityProvider"
-    "Microsoft.BingTravel"
-    "Microsoft.BingHealthAndFitness"
-    "Microsoft.BingFoodAndDrink"
-    "Microsoft.BingFinance"
-    "Microsoft.3DBuilder"
-    "Microsoft.BingNews"
-    "Microsoft.XboxApp" # Xbox App
-    "Microsoft.BingSports"
-    "Microsoft.Getstarted" # Get Started
-    "Microsoft.MicrosoftOfficeHub"
-    "Microsoft.BioEnrollment"
-    "Microsoft.WindowsStore"
-    "Microsoft.WindowsPhone"
-    "Microsoft.Todos_0.55.42812.0_x64__8wekyb3d8bbwe" # Correct Microsoft To Do
-    "Microsoft.Clipchamp" # Clipchamp
-    "Microsoft.LinkedIn" # LinkedIn
-    "Microsoft.549981C3F5F10" # Cortana
-    "Microsoft.GetHelp" # Get Help
-    "Microsoft.windowscommunicationsapps" # Mail and Calendar
-    "Microsoft.Teams" # Microsoft Teams
-    "Microsoft.YourPhone" # Phone Link
+# Deteksjon
+$erLenovo = (Get-CimInstance -Class Win32_ComputerSystem).Manufacturer -match "Lenovo"
+$erNvidia = Get-CimInstance Win32_VideoController | Where-Object { $_.Name -like "*NVIDIA*" }
+$erAmd = Get-CimInstance Win32_VideoController | Where-Object { $_.Name -match "(AMD|Radeon)" }
+
+if ($erLenovo) {
+    Write-Host "Lenovo-PC oppdaget – OEM-opprydding og Lenovo System Update vil kjøres." -ForegroundColor Green
+} else {
+    Write-Host "Ikke en Lenovo-PC – hopper over Lenovo-opprydding." -ForegroundColor Yellow
+}
+
+# --- Bloatware-liste ---
+$bloatwareApps = @(
+    "Microsoft.MicrosoftSolitaireCollection",
+    "Microsoft.BingNews",
+    "Microsoft.BingWeather",
+    "Microsoft.Todos",
+    "Microsoft.YourPhone",
+    "Clipchamp.Clipchamp",
+    "Microsoft.MicrosoftOfficeHub",
+    "AppUp.IntelGraphicsExperience",
+    "Microsoft.GetHelp",
+    "Microsoft.ZuneMusic",
+    "Microsoft.WindowsAlarms",
+    "Microsoft.WindowsFeedbackHub",
+    "Microsoft.OutlookForWindows",
+    "Microsoft.Copilot"
 )
 
-# Initialize an array to store the names of the removed apps
-$removedApps = @()
+# Xbox-relaterte apper kun fjernes hvis verken Nvidia eller AMD GPU
+if (-not $erNvidia -and -not $erAmd) {
+    $bloatwareApps += @(
+        "Microsoft.GamingApp",
+        "Microsoft.XboxGamingOverlay",
+        "Microsoft.Xbox.TCUI",
+        "Microsoft.XboxSpeechToTextOverlay",
+        "Microsoft.XboxIdentityProvider"
+    )
+}
 
-# Loop through each bloatware and remove it
-foreach ($app in $bloatware) {
-    $package = Get-AppxPackage -Name $app
-    if ($package -ne $null) {
-        $removedApps += $package.Name
-        $package | Remove-AppxPackage
+Write-Host "`nFjerner Microsoft/UWP bloatware..." -ForegroundColor Cyan
+foreach ($app in $bloatwareApps) {
+    $pakken = Get-AppxPackage -Name $app -AllUsers
+    if ($pakken) {
+        try {
+            $pakken | Remove-AppxPackage -AllUsers -ErrorAction Stop
+            Write-Host "Fjernet: $app" -ForegroundColor Green
+        } catch {
+            Write-Host "Feil ved fjerning: $app" -ForegroundColor Red
+        }
+    } else {
+        Write-Host "Ikke funnet eller allerede fjernet: $app" -ForegroundColor DarkGray
     }
 }
 
-# Remove the 3D Viewer app (not included in the above list)
-$package = Get-AppxPackage -Name Microsoft.Windows3DViewer
-if ($package -ne $null) {
-    $removedApps += $package.Name
-    $package | Remove-AppxPackage
+# --- Installer Lenovo System Update ---
+if ($erLenovo) {
+    Write-Host "`nFjerner Lenovo OEM-programvare..." -ForegroundColor Cyan
+    $lenovoApps = @(
+        "LenovoHotkeys",
+        "LenovoUtility",
+        "LenovoCompanion",
+        "LenovoVantage",
+        "LenovoDiagnostics",
+        "LenovoQuickOptimizer",
+        "LenovoModernImController",
+        "LenovoServiceBridge"
+    )
+    foreach ($app in $lenovoApps) {
+        Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE Name LIKE '%$app%'" | ForEach-Object {
+            Write-Host "Fjerner: $($_.Name)" -ForegroundColor Magenta
+            $_.Uninstall()
+        }
+    }
+    Write-Host "`nInstallerer Lenovo System Update..." -ForegroundColor Cyan
+    winget install --id Lenovo.SystemUpdate -e --silent --accept-package-agreements --accept-source-agreements
 }
 
-# Remove the Xbox Game Bar
-$package = Get-AppxPackage -Name Microsoft.XboxGameOverlay
-if ($package -ne $null) {
-    $removedApps += $package.Name
-    $package | Remove-AppxPackage
-}
-$package = Get-AppxPackage -Name Microsoft.XboxGamingOverlay
-if ($package -ne $null) {
-    $removedApps += $package.Name
-    $package | Remove-AppxPackage
-}
+# --- Installer Xbox- og spillklienter ved Nvidia eller AMD GPU og ikke Lenovo ---
+if (($erNvidia -or $erAmd) -and -not $erLenovo) {
+    Write-Host "`nSpill-PC oppdaget – installerer Xbox og ekstra spillklienter..." -ForegroundColor Cyan
 
-# Write the names of the removed apps to the log file
-$removedApps | Out-File -FilePath $logPath
+    # Xbox app
+    winget install --id Microsoft.XboxApp -e --silent --accept-package-agreements --accept-source-agreements
 
-# Display a message to indicate that the script has completed
-Write-Host "Bloatware removal complete. The following apps have been removed:" -ForegroundColor Green
-$removedApps | ForEach-Object { Write-Host "- $_" }
-Write-Host "A log of the removed apps has been saved to $logPath." -ForegroundColor Green
+    # Gaming Services (manuell installasjon via AppX)
+    Get-AppxPackage -allusers Microsoft.GamingServices | ForEach-Object {
+        Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml"
+    }
+
+    # Epic, Ubisoft, EA App
+    $gameClients = @(
+        "EpicGames.EpicGamesLauncher",
+        "Ubisoft.Connect",
+        "ElectronicArts.EADesktop"
+    )
+    foreach ($client in $gameClients) {
+        winget install --id $client -e --silent --accept-package-agreements --accept-source-agreements
+    }
+}
