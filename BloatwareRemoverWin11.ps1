@@ -127,18 +127,22 @@ foreach ($app in $standardApps) {
 
 # --- Systeminnstillinger: språk, tastatur, tema, søkemotor, akselerasjon ---
 Write-Host "`nOppdaterer språk, tastatur og datoformat..." -ForegroundColor Cyan
-Set-WinUILanguageOverride -Language en-US
-Set-WinUserLanguageList -LanguageList nb-NO,en-US -Force
+$LangList = Get-WinUserLanguageList | Where-Object { $_.LanguageTag -ne "en-US" }
+Set-WinUserLanguageList $LangList -Force
 Set-WinSystemLocale nb-NO
-Set-Culture nb-NO
+Set-WinUILanguageOverride -Language en-US
 Set-WinHomeLocation -GeoId 177
+Set-Culture nb-NO
 Set-TimeZone "W. Europe Standard Time"
 
 Write-Host "Setter mørkt tema og fjerner unødvendige elementer fra taskbar..." -ForegroundColor Cyan
+if (-not (Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced")) {
+    New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Force | Out-Null
+}
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 0 -Force
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Value 0 -Force
-New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -PropertyType DWord -Force
-New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn" -Value 0 -PropertyType DWord -Force
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -Force
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn" -Value 0 -Force
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Value 0 -Force
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -Value 0 -Force
 
