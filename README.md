@@ -1,36 +1,53 @@
-# BloatwareRemoverWin11
-BloatwareRemoverWin11 is a PowerShell script that removes bloatware from Windows 11. It uses the Get-AppxPackage and Remove-AppxPackage cmdlets to uninstall the specified applications.
+# PostReinstall Toolkit for Windows 11
 
-# Usage
-To use the script, follow these steps:
+This PowerShell script automates post-install cleanup and setup tasks for freshly installed Windows 11 systems. It removes unnecessary bloatware, installs essential applications, configures the system UI, and performs GPU-based customization for gaming PCs.
 
-1. Open PowerShell with administrator privileges. You can do this by searching for "PowerShell" in the Start menu, right-clicking the Windows PowerShell result, and selecting "Run as administrator".
+## Features
 
-2. Navigate to the folder that contains the script. You can do this using the cd command followed by the folder path (e.g. cd C:\Users\JohnDoe\Documents).
+* Removes preinstalled Microsoft and OEM (Lenovo) applications
+* Detects Lenovo systems and installs Lenovo System Update
+* Detects NVIDIA or AMD GPUs and:
 
-3. Type the name of the script file (e.g. .\remove-bloatware.ps1) and press Enter.
+  * Preserves Xbox services
+  * Installs Xbox App, Gaming Services, Epic Games Launcher, Ubisoft Connect, and EA App (non-Lenovo PCs only)
+* Installs commonly used applications (e.g., Chrome, Firefox, Discord, VLC, Steam)
+* Sets system language to English and input/locale to Norwegian
+* Applies Windows dark theme and taskbar customization
+* Sets Google as default search engine in Edge and Chrome
+* Disables hardware acceleration in Edge and Chrome
+* Generates a full execution log on the desktop
 
-4. The script will start removing the specified apps. You will see a list of the apps that have been removed in the PowerShell window, as well as a message indicating that a log file has been saved to the desktop.
+## Requirements
 
-Note that this script modifies the Windows operating system, so use at your own risk and make sure to backup your data before proceeding. Removing certain applications may affect the functionality of other applications. Be sure to review the list of bloatware and make sure you are comfortable with what will be removed.
+* Windows 11
+* Administrator privileges
+* PowerShell 5.1 or newer
 
-# Releases
-## Release v1.0.0 - Initial Release
-This is the initial release of BloatwareRemoverWin11. It includes a list of bloatware that can be customized by editing the $bloatware array in the script. It also includes logging functionality that writes a log file to the current user's desktop with the name bloatware-removal.log. The log file records the names of the apps that have been removed.
+## Usage
 
-1. To download and use the release, follow these steps:
+1. Open PowerShell as Administrator.
 
-2. Go to the Releases page of the repository.
+2. Optionally bypass execution policy temporarily (if needed):
 
-3. Click on the release title to view the release details.
+   ```powershell
+   Set-ExecutionPolicy RemoteSigned -Scope Process -Force
+   ```
 
-4. Download the attached files or the source code.
+3. Run the script:
 
-5. Extract the files to a folder on your computer.
+   ```powershell
+   .\PostReinstall.ps1
+   ```
 
-6. Open PowerShell with administrator privileges and navigate to the folder containing the script.
+4. Follow the prompts and wait for the operations to complete. A log file will be saved to your desktop.
 
-7. Type the name of the script file (e.g. .\remove-bloatware.ps1) and press Enter.
-The script will start removing the specified apps. You will see a list of the apps that have been removed in the PowerShell window, as well as a message indicating that a log file has been saved to the desktop.
+## Notes
 
-We hope you find this script useful! If you encounter any issues or have any feedback, please feel free to open an issue on the GitHub repository.
+* The script uses Winget to install software. Ensure Winget is available and up-to-date.
+* The script detects GPU manufacturer and adjusts behavior accordingly.
+* Some changes (like language or theme) may require a sign-out or reboot to take full effect.
+* Spotify may fail to install due to elevation context. This is known behavior and safe to ignore.
+
+## Disclaimer
+
+Use at your own risk. Always back up your data and review the script contents before execution. This script makes changes to system settings and removes applications which may affect your workflow.
