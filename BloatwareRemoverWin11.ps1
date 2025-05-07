@@ -125,49 +125,5 @@ foreach ($app in $standardApps) {
     winget install --id $app -e --silent --accept-package-agreements --accept-source-agreements
 }
 
-# --- Systeminnstillinger: språk, tastatur, tema, søkemotor, akselerasjon ---
-Write-Host "`nOppdaterer språk, tastatur og datoformat..." -ForegroundColor Cyan
-$LangList = @()
-$LangList += New-WinUserLanguageList -Language "en-US"
-$norwegian = New-WinUserLanguageList -Language "nb-NO"
-$norwegian[0].InputMethodTips.Clear()
-$norwegian[0].InputMethodTips.Add("0414:00000414")
-$LangList += $norwegian
-Set-WinUserLanguageList $LangList -Force
-Set-WinSystemLocale nb-NO
-Set-WinUILanguageOverride -Language en-US
-Set-WinHomeLocation -GeoId 177
-Set-Culture nb-NO
-Set-TimeZone "W. Europe Standard Time"
-
-Write-Host "Setter mørkt tema og fjerner unødvendige elementer fra taskbar..." -ForegroundColor Cyan
-if (-not (Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced")) {
-    New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Force | Out-Null
-}
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 0 -Force
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Value 0 -Force
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -Force
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn" -Value 0 -Force
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Value 0 -Force
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -Value 0 -Force
-
-Write-Host "Setter Google som standardsøkemotor i Edge og Chrome..." -ForegroundColor Cyan
-New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Force | Out-Null
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "DefaultSearchProviderEnabled" -Value 1 -PropertyType DWord -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "DefaultSearchProviderSearchURL" -Value "https://www.google.com/search?q={searchTerms}" -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "DefaultSearchProviderName" -Value "Google" -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "DefaultSearchProviderKeyword" -Value "google.com" -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "PromotionalTabsEnabled" -Value 0 -PropertyType DWord -Force
-
-New-Item -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Force | Out-Null
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "DefaultSearchProviderEnabled" -Value 1 -PropertyType DWord -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "DefaultSearchProviderSearchURL" -Value "https://www.google.com/search?q={searchTerms}" -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "DefaultSearchProviderName" -Value "Google" -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "DefaultSearchProviderKeyword" -Value "google.com" -Force
-
-Write-Host "Deaktiverer hardware-akselerasjon i Edge og Chrome..." -ForegroundColor Cyan
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "HardwareAccelerationModeEnabled" -Value 0 -PropertyType DWord -Force
-New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Google\Chrome" -Name "HardwareAccelerationModeEnabled" -Value 0 -PropertyType DWord -Force
-
 Write-Host "`nOpprydding fullført. Logg lagret til: $loggFil" -ForegroundColor Green
 Stop-Transcript
